@@ -1,0 +1,6 @@
+{
+  "name": "Ten Ventures Africa",
+  "description": "Business, HR, Recruitment, and Legal Compliance platform for Ten Ventures Africa.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
