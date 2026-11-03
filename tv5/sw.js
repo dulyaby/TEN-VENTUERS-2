@@ -1,0 +1,5 @@
+const C='tv-v6',CORE=['index.html','about.html','services.html','careers.html','trainings.html','news.html','contact.html','account.html','site.css','site.js','sky.js','app.css','app.js','ui.js','fb.js','company.html','dashboard.html','admin.html','data.js','logo-points.js','popup.js','contact.js','assets/logo.jpg'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!=C).map(x=>caches.delete(x)))).then(()=>clients.claim())));
+self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);if(r.method!='GET'||u.origin!=location.origin)return;const save=res=>{const cp=res.clone();caches.open(C).then(c=>c.put(r,cp));return res};
+if(u.pathname.includes('/assets/'))e.respondWith(caches.match(r).then(m=>m||fetch(r).then(save)));else e.respondWith(fetch(r).then(save).catch(()=>caches.match(r).then(m=>m||caches.match('index.html'))))});

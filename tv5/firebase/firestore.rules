@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function mail() { return request.auth.token.email.lower(); }
+    function isAdmin() { return signedIn() && (
+        mail() == 'neema@tensventures.com'
+        || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        || exists(/databases/$(database)/documents/adminEmails/$(mail()))); }
+
+    match /admins/{id} {
+      allow read: if signedIn() && request.auth.uid == id;
+      allow write: if false;
+    }
+    match /adminEmails/{id} {
+      allow read: if signedIn() && (mail() == id || isAdmin());
+      allow write: if isAdmin();
+    }
+    match /users/{id} {
+      allow read: if signedIn() && (request.auth.uid == id || isAdmin());
+      allow create: if signedIn() && request.auth.uid == id && request.resource.data.role in ['company','seeker'];
+      allow update: if signedIn() && request.auth.uid == id && request.resource.data.role == resource.data.role;
+      allow delete: if isAdmin();
+    }
+    match /companies/{id} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == id;
+      allow delete: if isAdmin() || (signedIn() && request.auth.uid == id);
+    }
+    match /jobs/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.companyId == request.auth.uid
+                    && exists(/databases/$(database)/documents/companies/$(request.auth.uid));
+      allow update, delete: if signedIn() && (resource.data.companyId == request.auth.uid || isAdmin());
+    }
+    match /trainings/{id} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (signedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seats','full']));
+    }
+    match /news/{id}     { allow read: if true; allow write: if isAdmin(); }
+    match /ads/{id}      { allow read: if true; allow write: if isAdmin(); }
+    match /messages/{id} { allow create: if true; allow read, update, delete: if isAdmin(); }
+    match /bookings/{id} { allow create: if signedIn(); allow read, update, delete: if isAdmin(); }
+    match /applications/{id} {
+      allow create: if true;
+      allow read: if isAdmin() || (signedIn() && (resource.data.companyId == request.auth.uid || resource.data.uid == request.auth.uid));
+      allow update, delete: if isAdmin();
+    }
+  }
+}

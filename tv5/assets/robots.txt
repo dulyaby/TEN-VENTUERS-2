@@ -1,0 +1,8 @@
+# robots.txt for https://tensventures.africa
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /account.html
+Disallow: /dashboard.html
+
+Sitemap: https://tensventures.africa/sitemap.xml
